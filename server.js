@@ -1,16 +1,11 @@
 const express = require('express');
 const path = require('path');
 const app = express();
-const PORT = process.env.PORT || 80;
+const PORT = process.env.PORT || 3000;
 
-// Serve static files from the 'public' folder
+// Serve all files in the "public" folder (index.html, agent.exe, etc.)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Fallback to index.html for any request
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
 app.listen(PORT, () => {
-    console.log(`VPS Dashboard running on port ${PORT}`);
+    console.log(`Web Dashboard live at http://localhost:${PORT}`);
 });
