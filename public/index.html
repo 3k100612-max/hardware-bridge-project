@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hardware Serial Dashboard</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f0f2f5; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 400px; }
+        .status { margin: 1.5rem 0; padding: 1rem; border-radius: 8px; font-weight: bold; }
+        .offline { background: #ffe3e3; color: #d9534f; border: 1px solid #d9534f; }
+        .online { background: #e6ffed; color: #28a745; border: 1px solid #28a745; }
+        .serial-text { font-family: monospace; font-size: 1.2rem; display: block; margin-top: 0.5rem; }
+        .btn { display: inline-block; background: #007bff; color: white; padding: 0.8rem 1.5rem; text-decoration: none; border-radius: 6px; margin-top: 1rem; transition: background 0.2s; }
+        .btn:hover { background: #0056b3; }
+        .step { font-size: 0.85rem; color: #666; margin-top: 0.5rem; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Hardware Monitor</h2>
+        <div id="status-container" class="status offline">
+            <span id="status-text">Local Agent Offline</span>
+            <span id="serial-value" class="serial-text"></span>
+        </div>
+        
+        <div id="instructions">
+            <p>To view your hardware serial, please run the local bridge agent.</p>
+            <a href="#" class="btn" onclick="alert('Link your agent.exe here after building it!')">Download Agent.exe</a>
+            <p class="step">Once the agent is running, this page will update automatically.</p>
+        </div>
+    </div>
+
+    <script>
+        async function checkAgent() {
+            const statusContainer = document.getElementById('status-container');
+            const statusText = document.getElementById('status-text');
+            const serialValue = document.getElementById('serial-value');
+            const instructions = document.getElementById('instructions');
+
+            try {
+                // Browser attempts to talk to the local machine
+                const response = await fetch('http://localhost:5000/serial');
+                if (!response.ok) throw new Error();
+                
+                const serial = await response.text();
+                
+                // Update UI on success
+                statusText.innerText = "Agent Connected";
+                serialValue.innerText = serial;
+                statusContainer.className = "status online";
+                instructions.style.display = "none";
+            } catch (err) {
+                // Revert UI on failure
+                statusText.innerText = "Local Agent Offline";
+                serialValue.innerText = "";
+                statusContainer.className = "status offline";
+                instructions.style.display = "block";
+            }
+        }
+
+        // Poll every 2 seconds
+        setInterval(checkAgent, 2000);
+        checkAgent();
+    </script>
+</body>
+</html>
