@@ -1,13 +1,10 @@
 {
-  "name": "local-hardware-agent",
+  "name": "hw-bridge-agent",
   "version": "1.0.0",
   "main": "agent.js",
-  "bin": "agent.js",
-  "scripts": {
-    "start": "node agent.js",
-    "build": "pkg . --targets node18-win-x64 --output agent.exe"
-  },
-  "devDependencies": {
-    "pkg": "^5.8.1"
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "systeminformation": "^5.21.22"
   }
 }
