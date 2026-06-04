@@ -11,8 +11,9 @@
         .offline { background: #ffe3e3; color: #d9534f; border: 1px solid #d9534f; }
         .online { background: #e6ffed; color: #28a745; border: 1px solid #28a745; }
         .serial-text { font-family: monospace; font-size: 1.2rem; display: block; margin-top: 0.5rem; }
-        .btn { display: inline-block; background: #007bff; color: white; padding: 0.8rem 1.5rem; text-decoration: none; border-radius: 6px; margin-top: 1rem; transition: background 0.2s; }
+        .btn { display: inline-block; background: #007bff; color: white; padding: 0.8rem 1.5rem; text-decoration: none; border-radius: 6px; margin-top: 1rem; transition: background 0.2s; cursor: pointer; border: none; font-size: 1rem; }
         .btn:hover { background: #0056b3; }
+        .btn-secondary { background: #6c757d; margin-top: 0.5rem; font-size: 0.8rem; }
         .step { font-size: 0.85rem; color: #666; margin-top: 0.5rem; }
     </style>
 </head>
@@ -26,7 +27,14 @@
         
         <div id="instructions">
             <p>To view your hardware serial, please run the local bridge agent.</p>
-            <a href="#" class="btn" onclick="alert('Link your agent.exe here after building it!')">Download Agent.exe</a>
+            
+            <!-- 1. Real Download Link -->
+            <a href="/agent.exe" class="btn">Download Agent.exe</a>
+            
+            <!-- 2. Deep Link to launch agent if already installed -->
+            <br>
+            <a href="hwbridge://" class="btn btn-secondary">Already installed? Click to Open</a>
+            
             <p class="step">Once the agent is running, this page will update automatically.</p>
         </div>
     </div>
@@ -39,19 +47,22 @@
             const instructions = document.getElementById('instructions');
 
             try {
-                // Browser attempts to talk to the local machine
-                const response = await fetch('http://localhost:5000/serial');
+                // We use a timeout so the UI doesn't "flicker" if the local PC is slow
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 1500);
+
+                const response = await fetch('http://localhost:5000/serial', { signal: controller.signal });
+                clearTimeout(timeoutId);
+
                 if (!response.ok) throw new Error();
                 
                 const serial = await response.text();
                 
-                // Update UI on success
                 statusText.innerText = "Agent Connected";
                 serialValue.innerText = serial;
                 statusContainer.className = "status online";
                 instructions.style.display = "none";
             } catch (err) {
-                // Revert UI on failure
                 statusText.innerText = "Local Agent Offline";
                 serialValue.innerText = "";
                 statusContainer.className = "status offline";
@@ -59,9 +70,17 @@
             }
         }
 
-        // Poll every 2 seconds
+        // Check every 2 seconds
         setInterval(checkAgent, 2000);
         checkAgent();
+
+        // 3. Auto-launch attempt on page load
+        window.onload = () => {
+            setTimeout(() => {
+                // This tries to trigger the "Open Hardware Bridge?" popup in the browser
+                window.location.href = "hwbridge://";
+            }, 1000);
+        };
     </script>
 </body>
 </html>
